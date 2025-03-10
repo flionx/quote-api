@@ -2,11 +2,13 @@
   "name": "qute-api",
   "version": "1.0.0",
   "description": "API server returning the quote of the day | Designed to bypass cors policy",
-  "type": "commonjs",
-  "main": "index.js",
+  "type": "module",
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "vercel-build": "tsc"
   },
   "repository": {
     "type": "git",
@@ -24,6 +26,7 @@
     "node-fetch": "^3.3.2"
   },
   "devDependencies": {
+    "@vercel/node": "^5.1.12",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/node": "^22.13.10",

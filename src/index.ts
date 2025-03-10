@@ -36,7 +36,6 @@ async function fetchNewQuote(): Promise<IQuote> {
     try {
         const response = await fetch("https://favqs.com/api/qotd");
         if (!response.ok) throw new Error("Error while requesting quote");
-
         const data = (await response.json()) as IData;
         return {
             text: data.quote.body,
@@ -49,18 +48,21 @@ async function fetchNewQuote(): Promise<IQuote> {
     }
 }
 
+// Добавляем корневой маршрут для проверки, что сервер работает
+app.get("/", (req: Request, res: Response): void => {
+    res.send("API Server is running. Use /api/quote to get the quote of the day.");
+});
+
 app.get("/api/quote", async (req: Request, res: Response): Promise<void> => {
     try {
         if (fs.existsSync(QUOTE_FILE)) {
             const fileData = fs.readFileSync(QUOTE_FILE, "utf-8");
             const savedQuote: IQuote = JSON.parse(fileData);
-
             if (savedQuote.date === new Date().toISOString().split("T")[0]) {
                 res.json(savedQuote);
-                return ;
+                return;
             }
         }
-
         const newQuote = await fetchNewQuote();
         fs.writeFileSync(QUOTE_FILE, JSON.stringify(newQuote), "utf-8");
         res.json(newQuote);
@@ -74,4 +76,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
+
 export default app;
