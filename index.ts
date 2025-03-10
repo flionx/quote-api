@@ -1,38 +1,39 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import cors from "cors";
 import fetch from "node-fetch";
 import * as fs from "fs";
+import { IData, IQuote } from "./types";
 
 const app = express();
 app.use(cors());
 
 const QUOTE_FILE = "/tmp/daily_quote.json";
 
-async function fetchNewQuote() {
+async function fetchNewQuote(): Promise<IQuote> {
     try {
         const response = await fetch("https://favqs.com/api/qotd");
-        if (!response.ok) throw new Error("Ошибка при запросе цитаты");
+        if (!response.ok) throw new Error("Error while requesting quote");
 
-        const data = await response.json();
+        const data = await response.json() as IData;
         return {
             text: data.quote.body,
             author: data.quote.author,
-            date: new Date().toISOString().split("T")[0], // Сегодняшняя дата
+            date: new Date().toISOString().split("T")[0], // '2025-03-10'
         };
     } catch (error) {
-        console.error("Ошибка получения цитаты:", error);
+        console.error("Error while requesting quote: ", error);
         return { text: "There will be no tomorrow", author: "Unknown", date: new Date().toISOString().split("T")[0] };
     }
 }
 
-app.get("/api/quote", async (req, res) => {
+app.get("/api/quote", async (req: Request, res: Response): Promise<void> => {
     try {
         if (fs.existsSync(QUOTE_FILE)) {
             const fileData = fs.readFileSync(QUOTE_FILE, "utf-8");
-            const savedQuote = JSON.parse(fileData);
+            const savedQuote: IQuote = JSON.parse(fileData);
 
             if (savedQuote.date === new Date().toISOString().split("T")[0]) {
-                return res.json(savedQuote);
+                res.json(savedQuote);
             }
         }
 
