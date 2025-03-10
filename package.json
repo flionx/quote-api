@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node ./app/api/index.js"
+    "start": "node index.js"
   },
   "author": "",
   "license": "ISC",
@@ -13,7 +13,6 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.21.2",
-    "node-fetch": "^3.3.2",
-    "typescript": "^5.8.2"
+    "node-fetch": "^3.3.2"
   }
 }

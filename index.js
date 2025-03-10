@@ -8,13 +8,6 @@ app.use(cors());
 
 const QUOTE_FILE = "/tmp/daily_quote.json";
 
-const PORT = 3000;
-
-app.listen(PORT, () => {
-    console.log(`Сервер запущен на http://localhost:${PORT}`);
-});
-
-
 async function fetchNewQuote() {
     try {
         const response = await fetch("https://favqs.com/api/qotd");
