@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import fetch from "node-fetch";
 import * as fs from "fs";
+import * as path from "path";
 
 interface IQuote {
     text: string;
@@ -19,7 +20,17 @@ interface IData {
 const app = express();
 app.use(cors());
 
-const QUOTE_FILE = "/tmp/daily_quote.json";
+const isProduction = process.env.NODE_ENV === "production";
+const QUOTE_FILE = isProduction
+  ? "/tmp/daily_quote.json"
+  : path.join(__dirname, "../tmp/daily_quote.json");
+
+if (!isProduction) {
+    const tmpDir = path.join(__dirname, "../tmp");
+    if (!fs.existsSync(tmpDir)) {
+        fs.mkdirSync(tmpDir);
+    }
+}
 
 async function fetchNewQuote(): Promise<IQuote> {
     try {
@@ -59,4 +70,8 @@ app.get("/api/quote", async (req: Request, res: Response): Promise<void> => {
     }
 });
 
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+});
 export default app;
