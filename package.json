@@ -2,6 +2,7 @@
   "name": "qute-api",
   "version": "1.0.0",
   "description": "API server returning the quote of the day | Designed to bypass cors policy",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "build": "tsc",
