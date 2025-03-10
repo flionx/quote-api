@@ -2,7 +2,19 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import fetch from "node-fetch";
 import * as fs from "fs";
-import { IData, IQuote } from "./types";
+
+interface IQuote {
+    text: string,
+    author: string,
+    date: string,
+}
+
+interface IData {
+    quote: {
+        body: string,
+        author: string
+    },
+}
 
 const app = express();
 app.use(cors());
