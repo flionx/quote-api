@@ -55,8 +55,13 @@ app.get("/api/quote", async (req: Request, res: Response): Promise<void> => {
         res.json(newQuote);
     } catch (error) {
         console.error("Server error:", error);
-        res.status(500).json({ error: "Internal Server Error" });
+        res.status(500).json({ error: error });
     }
+});
+
+const PORT = 3000;
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
 });
 
 export default app;
