@@ -4,16 +4,16 @@ import fetch from "node-fetch";
 import * as fs from "fs";
 
 interface IQuote {
-    text: string,
-    author: string,
-    date: string,
+    text: string;
+    author: string;
+    date: string;
 }
 
 interface IData {
     quote: {
-        body: string,
-        author: string
-    },
+        body: string;
+        author: string;
+    };
 }
 
 const app = express();
@@ -26,7 +26,7 @@ async function fetchNewQuote(): Promise<IQuote> {
         const response = await fetch("https://favqs.com/api/qotd");
         if (!response.ok) throw new Error("Error while requesting quote");
 
-        const data = await response.json() as IData;
+        const data = (await response.json()) as IData;
         return {
             text: data.quote.body,
             author: data.quote.author,
@@ -46,6 +46,7 @@ app.get("/api/quote", async (req: Request, res: Response): Promise<void> => {
 
             if (savedQuote.date === new Date().toISOString().split("T")[0]) {
                 res.json(savedQuote);
+                return ;
             }
         }
 
@@ -53,7 +54,8 @@ app.get("/api/quote", async (req: Request, res: Response): Promise<void> => {
         fs.writeFileSync(QUOTE_FILE, JSON.stringify(newQuote), "utf-8");
         res.json(newQuote);
     } catch (error) {
-        res.status(500).json({ error: error });
+        console.error("Server error:", error);
+        res.status(500).json({ error: "Internal Server Error" });
     }
 });
 
