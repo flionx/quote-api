@@ -2,11 +2,11 @@
   "name": "qute-api",
   "version": "1.0.0",
   "description": "API server returning the quote of the day | Designed to bypass cors policy",
-  "type": "commonjs",
-  "main": "index.js",
+  "type": "module",
+  "main": "dist/api/quote.js",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js"
+    "build": "tsc && mkdir -p public && echo '<!DOCTYPE html><html><head><title>Quote otday</title></head><body><h1>API Quote of the Day</h1><p>Use <a href=\"/api/quote\">/api/quote</a> to get the quote of the day.</p><p>It was developed for <a href='https://boost-clock.vercel.app/'>Boost Clock</a></p> </body></html>' > public/index.html",
+    "vercel-build": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -24,6 +24,7 @@
     "node-fetch": "^3.3.2"
   },
   "devDependencies": {
+    "@vercel/node": "^5.1.12",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/node": "^22.13.10",
