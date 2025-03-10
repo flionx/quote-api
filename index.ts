@@ -1,4 +1,5 @@
-import express, { Request, Response } from "express";
+import { Request, Response } from "express";
+import * as express from "express";
 import cors from "cors";
 import fetch from "node-fetch";
 import * as fs from "fs";
@@ -59,4 +60,7 @@ app.get("/api/quote", async (req: Request, res: Response): Promise<void> => {
     }
 });
 
-export default app;
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+});
