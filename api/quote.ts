@@ -38,28 +38,19 @@ async function fetchNewQuote(): Promise<IQuote> {
 }
 
 export default async (req: VercelRequest, res: VercelResponse): Promise<void> => {
-    try {
-        // Добавим логирование для отладки
-        console.log("Vercel serverless function called");
-        
+    try {        
         if (fs.existsSync(QUOTE_FILE)) {
-            console.log("Quote file exists, reading content");
             const fileData = fs.readFileSync(QUOTE_FILE, "utf-8");
             const savedQuote: IQuote = JSON.parse(fileData);
             const today = new Date().toISOString().split("T")[0];
-            console.log(`Saved quote date: ${savedQuote.date}, Today: ${today}`);
             
             if (savedQuote.date === today) {
-                console.log("Returning cached quote");
                 res.json(savedQuote);
                 return;
             }
         }
-        
-        console.log("Fetching new quote");
         const newQuote = await fetchNewQuote();
         fs.writeFileSync(QUOTE_FILE, JSON.stringify(newQuote), "utf-8");
-        console.log("New quote saved, returning it");
         res.json(newQuote);
     } catch (error) {
         console.error("Server error:", error);

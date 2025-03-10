@@ -11,6 +11,6 @@
     "allowJs": true,
     "resolveJsonModule": true
   },
-  "include": ["src/**/*", "api/**/*"],
+  "include": ["api/**/*"],
   "exclude": ["node_modules"]
 }
