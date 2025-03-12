@@ -27,8 +27,8 @@ git clone https://github.com/flionx/quote-api.git
 ```
 qute-api/
 ├─── dist/ # Compiled files
-├─── src/ # Source files
-│ └─── index.ts # Server main file
+├─── api/  # Source files
+│ └─── quote.ts # Server main file
 ├──── tmp/ # Temporary files (locally)
 ├─── package.json # Dependencies and scripts
 ├──── tsconfig.json # TypeScript configuration
