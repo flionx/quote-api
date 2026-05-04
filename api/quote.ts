@@ -1,59 +1,107 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import fetch from 'node-fetch';
 import * as fs from 'fs';
 
 interface IQuote {
-    text: string;
-    author: string;
-    date: string;
+  text: string;
+  author: string;
+  date: string;
 }
 
-interface IData {
-    quote: {
-        body: string;
-        author: string;
+interface IQuotePair {
+  en: IQuote;
+  ru: IQuote;
+}
+
+const CACHE_FILE = process.env.VERCEL ? '/tmp/daily_quote.json' : './daily_quote.json';
+
+const FALLBACK_QUOTES = {
+  en: { text: "There will be no tomorrow", author: "Unknown" },
+  ru: { text: "Не будет никакого завтра", author: "Неизвестный" }
+};
+
+async function fetchEnglishQuote(): Promise<IQuote> {
+  const response = await fetch("https://favqs.com/api/qotd");
+  if (!response.ok) throw new Error("Failed to fetch English quote");
+  const data = await response.json();
+  return {
+    text: data.quote.body,
+    author: data.quote.author,
+    date: new Date().toISOString().split('T')[0],
+  };
+}
+
+async function fetchRussianQuote(): Promise<IQuote> {
+  const response = await fetch("https://api.forismatic.com/api/1.0/?method=getQuote&lang=ru&format=json");
+  if (!response.ok) throw new Error("Failed to fetch Russian quote");
+  const data = await response.json();
+  return {
+    text: data.quoteText,
+    author: data.quoteAuthor?.trim() || "Неизвестный",
+    date: new Date().toISOString().split('T')[0],
+  };
+}
+
+async function safeFetchQuote(
+  fetcher: () => Promise<IQuote>,
+  lang: 'en' | 'ru'
+): Promise<IQuote> {
+  try {
+    return await fetcher();
+  } catch (error) {
+    console.error(`Failed to fetch ${lang} quote:`, error);
+    const today = new Date().toISOString().split('T')[0];
+    return {
+      text: FALLBACK_QUOTES[lang].text,
+      author: FALLBACK_QUOTES[lang].author,
+      date: today,
     };
+  }
 }
 
-const QUOTE_FILE = '/tmp/daily_quote.json';
+export default async (req: VercelRequest, res: VercelResponse) => {
+  try {
+    const today = new Date().toISOString().split('T')[0];
 
-async function fetchNewQuote(): Promise<IQuote> {
-    try {
-        const response = await fetch("https://favqs.com/api/qotd");
-        if (!response.ok) throw new Error("Error while requesting quote");
-        const data = (await response.json()) as IData;
-        return {
-            text: data.quote.body,
-            author: data.quote.author,
-            date: new Date().toISOString().split("T")[0], // '2025-03-10'
-        };
-    } catch (error) {
-        console.error("Error while requesting quote: ", error);
-        return { 
-            text: "There will be no tomorrow", 
-            author: "Unknown", 
-            date: new Date().toISOString().split("T")[0] 
-        };
-    }
-}
-
-export default async (req: VercelRequest, res: VercelResponse): Promise<void> => {
-    try {        
-        if (fs.existsSync(QUOTE_FILE)) {
-            const fileData = fs.readFileSync(QUOTE_FILE, "utf-8");
-            const savedQuote: IQuote = JSON.parse(fileData);
-            const today = new Date().toISOString().split("T")[0];
-            
-            if (savedQuote.date === today) {
-                res.json(savedQuote);
-                return;
-            }
+    if (fs.existsSync(CACHE_FILE)) {
+      try {
+        const cached = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf-8'));
+        if (cached.en?.date === today && cached.ru?.date === today) {
+          return res.json(cached);
         }
-        const newQuote = await fetchNewQuote();
-        fs.writeFileSync(QUOTE_FILE, JSON.stringify(newQuote), "utf-8");
-        res.json(newQuote);
-    } catch (error) {
-        console.error("Server error:", error);
-        res.status(500).json({ error: String(error) });
+      } catch (cacheError) {
+        console.error("Cache read error, will fetch fresh:", cacheError);
+      }
     }
+
+    const [en, ru] = await Promise.all([
+      safeFetchQuote(fetchEnglishQuote, 'en'),
+      safeFetchQuote(fetchRussianQuote, 'ru')
+    ]);
+
+    const quotes: IQuotePair = { en, ru };
+
+    try {
+      fs.writeFileSync(CACHE_FILE, JSON.stringify(quotes));
+    } catch (cacheError) {
+      console.error("Failed to write cache:", cacheError);
+    }
+
+    res.json(quotes);
+  } catch (error) {
+    console.error("Critical error:", error);
+    const today = new Date().toISOString().split('T')[0];
+
+    res.status(200).json({
+      en: {
+        text: FALLBACK_QUOTES.en.text,
+        author: FALLBACK_QUOTES.en.author,
+        date: today,
+      },
+      ru: {
+        text: FALLBACK_QUOTES.ru.text,
+        author: FALLBACK_QUOTES.ru.author,
+        date: today,
+      },
+    });
+  }
 };

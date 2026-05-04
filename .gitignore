@@ -2,3 +2,7 @@ node_modules
 dist
 tmp
 src
+
+.vercel
+.env*.local
+daily_quote.json
